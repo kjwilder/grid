@@ -9,32 +9,10 @@
 
 namespace utils_h {
 
-/*#define WIN95*/
-#ifdef WIN95
-#define NOX
-#ifndef INTEL
-#define INTEL
-#endif
-#define rint(x) static_cast<int>((x) + 0.5)
-#define near nearr
-#define far farr
-#endif
-
-#ifdef WIN95
-#define Ifstream(v, f) std::ifstream v(f, ios::binary)
-#define Ofstream(v, f) std::ofstream v(f, ios::binary)
-#define Open(f) open(f, ios::binary)
-#define Getline(b, s) getline(b, s, '\n')
-#else
 #define Ifstream(v, f) std::ifstream v(f)
 #define Ofstream(v, f) std::ofstream v(f)
 #define Open(f) open(f)
 #define Getline(b, s) getline(b, s)
-#endif
-
-#ifndef USE_ASSERTS
-#define NDEBUG
-#endif
 
 // __________________________________________________________________________
 // (Somewhat) platform independent reads and writes.
