@@ -1,5 +1,3 @@
-load("@rules_cc//cc:cc_test.bzl", "cc_test")
-
 cc_test(
     name = "utils_test",
     size = "small",
