@@ -7,5 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: bazel-contrib/setup-bazel@0.8.5
+        with:
+          bazelisk-version: 1.x
       - name: run tests
         run: bazel test :all
