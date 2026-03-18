@@ -9,6 +9,7 @@
 #include <fstream>
 #include <functional>
 #include <numeric>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -109,14 +110,14 @@ class grid {
   const grid transpose() const;
   grid LU() const;
   grid inverse() const;
-  int offpixels() {
+  int offpixels() const {
     int c = 0;
     for (size_t i = 0; i < nr * nc; ++i) {
       c += (sto[i] == 0);
-      return c;
     }
+    return c;
   }
-  int onpixels() { return(nr * nc - offpixels()); }
+  int onpixels() const { return(nr * nc - offpixels()); }
   void sort(size_t col);
 };  // class grid
 
@@ -228,9 +229,8 @@ int grid<T>::read(const char *file) {
   } else if (!memcmp(version, "GR12", 4)) {
     ifs >> nr;
     ifs >> nc;
-    assert(nr >= 0 && nc >= 0);
     if (nr > 0 && nc > 0) {
-      sto = new T[nr * nc];
+      sto.resize(nr * nc);
       for (size_t j = 0; j < nc; ++j) {
         for (size_t i = 0; i < nr; ++i) {
           ifs >> (*this)(i, j);
@@ -257,9 +257,8 @@ int grid<T>::read(std::ifstream& is) {
   resize(0, 0);
   varread(is, nr);
   varread(is, nc);
-  assert(nr >= 0 && nc >= 0);
   if (nr > 0 && nc > 0) {
-    sto = new T[nr * nc];
+    sto.resize(nr * nc);
     arrayread(is, sto, nr * nc);
   }
   assert(consistent());
@@ -285,7 +284,6 @@ grid<T>& grid<T>::operator=(const grid& m) {
 template<class T>
 void grid<T>::subgrid(
     grid* m, size_t r, size_t c, size_t numrows, size_t numcols) const {
-  assert(r >= 0 && c >= 0 && numrows >= 0 && numcols >= 0);
   assert(r + numrows <= nr && c + numcols <= nc);
 
   if (this != m) {
@@ -293,14 +291,14 @@ void grid<T>::subgrid(
     if (nr > 0 && nc > 0) {
       for (size_t i = 0; i < m->nr; ++i) {
         for (size_t j = 0; j < m->nc; ++j) {
-          m(i, j) = (*this)(r + i, c + j);
+          (*m)(i, j) = (*this)(r + i, c + j);
         }
       }
     }
   } else {
     grid tmp;
-    subgrid(tmp, r, c, numrows, numcols);
-    m << tmp;
+    subgrid(&tmp, r, c, numrows, numcols);
+    *m << tmp;
   }
 }
 
@@ -310,11 +308,12 @@ void grid<T>::subgrid(
 template<class T>
 grid<T>& grid<T>::operator<<(grid &m) {
   if (this != &m) {
-    resize(0, 0);
     nr = m.nr;
     nc = m.nc;
-    sto = m.storage();  // TODO(wilder): Fix this, need to swap sto and m.sto.
-    m.resize(0, 0);
+    std::swap(sto, m.sto);
+    m.nr = 0;
+    m.nc = 0;
+    m.sto.clear();
   }
   return *this;
 }
@@ -422,8 +421,8 @@ grid<T> grid<T>::LU() const {
     for (size_t i = 0; i < nr - 1; ++i) {
       for (size_t j = i + 1; j < nr; ++j)
         tmp(j, i) /= tmp(i, i);
-      for (int j = i + 1; j < nr; ++j)
-        for (int k = i + 1; k < nr; ++k)
+      for (size_t j = i + 1; j < nr; ++j)
+        for (size_t k = i + 1; k < nr; ++k)
           tmp(j, k) -= tmp(j, i) * tmp(i, k);
     }
   }
@@ -454,8 +453,7 @@ grid<T> grid<T>::inverse() const {
       }
     }
     if (max == 0.0) {
-      std::cerr << "Unable to invert a matrix" << std::endl;
-      exit(1);
+      throw std::runtime_error("Unable to invert a singular matrix");
     }
     if (r > j) {
       for (k = 0; k < nr; ++k)
