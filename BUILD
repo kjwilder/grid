@@ -1,15 +1,28 @@
 cc_test(
-  name = "utils_test",
-  copts = ["-Wall", "-Werror"],
-  size = "small",
-  srcs = ["utils.h", "tests/utils_test.cc"],
-  deps = ["@googletest//:gtest_main"],
+    name = "utils_test",
+    size = "small",
+    srcs = [
+        "tests/utils_test.cc",
+        "utils.h",
+    ],
+    copts = [
+        "-Wall",
+        "-Werror",
+    ],
+    deps = ["@googletest//:gtest_main"],
 )
 
 cc_test(
-  name = "grid_test",
-  copts = ["-Wall", "-Werror"],
-  size = "small",
-  srcs = ["utils.h", "grid.h", "tests/grid_test.cc"],
-  deps = ["@googletest//:gtest_main"],
+    name = "grid_test",
+    size = "small",
+    srcs = [
+        "grid.h",
+        "tests/grid_test.cc",
+        "utils.h",
+    ],
+    copts = [
+        "-Wall",
+        "-Werror",
+    ],
+    deps = ["@googletest//:gtest_main"],
 )
